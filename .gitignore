@@ -10,3 +10,6 @@ Thumbs.db
 # Project specific
 config.json
 .venv
+monitor.log
+last_known_sha.json
+updates/

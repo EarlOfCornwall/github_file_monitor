@@ -43,7 +43,7 @@ class AppConfig:
             repo_name=data["repo_name"],
             file_path=data["file_path"],
             check_interval_minutes=data["check_interval_minutes"],
-            gh_api_token=data.get(["gh_api_token"]),
+            gh_api_token=data.get("gh_api_token"),
             branch=data["branch"],
             email=email_cfg,
         )

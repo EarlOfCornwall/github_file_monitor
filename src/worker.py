@@ -1,7 +1,7 @@
 import requests
 import json
 from pathlib import Path
-from config import AppConfig
+from src.config import AppConfig
 
 
 class MonitorWorker:
