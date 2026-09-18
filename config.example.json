@@ -1,10 +1,12 @@
 {
   "repo_owner": "octocat",
   "repo_name": "hello-world",
+  "branch": "main",
   "file_path": [
     "README.md",
     "src/main.py"
   ],
+  "gh_api_token": "tokenapiexample",
   "check_interval_minutes": 15,
   "email": {
     "smtp_server": "smtp.gmail.com",
