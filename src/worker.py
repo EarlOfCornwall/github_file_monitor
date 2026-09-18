@@ -1,7 +1,10 @@
 import requests
 import json
+import logging
 from pathlib import Path
 from src.config import AppConfig
+
+logger = logging.getLogger(__name__)
 
 
 class MonitorWorker:
@@ -21,6 +24,7 @@ class MonitorWorker:
                 with open(self.cache_file, "r", encoding="utf-8") as f:
                     return json.load(f)
             except json.JSONDecodeError:
+                logger.warning("Файл кэша был поврежден.")
                 return {}
         return {}
 
@@ -51,6 +55,7 @@ class MonitorWorker:
         cache = self._load_cache()
 
         if cache.get("commit_sha") == latest_commit:
+            logger.debug("Хэш коммита не изменился, подробная проверка не требуется.")
             return {}
 
         updated_files = {}
@@ -62,27 +67,27 @@ class MonitorWorker:
                 cached_file_sha = files_cache.get(file_path)
 
                 if cached_file_sha != current_file_sha:
-                    print(f"[+] Изменён: {file_path}")
+                    logger.info(f"Изменён: {file_path}")
                     content = self.download_raw_file(
                         file_path, commit_sha=latest_commit
                     )
                     updated_files[file_path] = content
-
                     files_cache[file_path] = current_file_sha
                 else:
-                    print(f"[-] Без изменений: {file_path}")
+                    logger.debug(f"Без изменений: {file_path}")
 
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 404:
-                    print(f"[!] Файл не найден или удалён: {file_path}")
+                    logger.warning(f"Файл не найден или удалён: {file_path}")
                     files_cache.pop(file_path, None)
                 else:
+                    logger.error(f"HTTP ошибка при проверке {file_path}: {e}")
                     raise e
 
         if updated_files:
             cache["commit_sha"] = latest_commit
             cache["files"] = files_cache
             self._save_cache(cache)
-            print(f"[*] Кэш обновлён для коммита {latest_commit[:7]}")
+            logger.info(f"Кэш обновлён для коммита {latest_commit[:7]}")
 
         return updated_files
