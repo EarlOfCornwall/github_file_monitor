@@ -41,7 +41,9 @@ class VKNotifier:
 
                 if "response" not in upload_url_data:
                     last_error = f"Ошибка получения сервера: {upload_url_data}"
-                    logger.warning(last_error)
+                    logger.warning(
+                        f"[{safe_filename}] Попытка {attempt}/{max_retries}: {last_error}"
+                    )
                     if attempt < max_retries:
                         time.sleep(2)
                         continue
@@ -62,7 +64,8 @@ class VKNotifier:
                         or str(upload_data)
                     )
                     logger.warning(
-                        f"Сервер ВК не принял файл (попытка {attempt}/{max_retries}): {last_error}"
+                        f"[{safe_filename}] Попытка {attempt}/{max_retries}: "
+                        f"сервер ВК не принял файл ({last_error})"
                     )
                     if attempt < max_retries:
                         time.sleep(2)
@@ -84,7 +87,9 @@ class VKNotifier:
 
                 if "response" not in save_data:
                     last_error = f"Ошибка сохранения: {save_data}"
-                    logger.warning(last_error)
+                    logger.warning(
+                        f"[{safe_filename}] Попытка {attempt}/{max_retries}: {last_error}"
+                    )
                     if attempt < max_retries:
                         time.sleep(2)
                         continue
@@ -95,7 +100,9 @@ class VKNotifier:
 
                 if "owner_id" not in doc_info or "id" not in doc_info:
                     last_error = f"Неожиданный формат ответа: {save_data}"
-                    logger.warning(last_error)
+                    logger.warning(
+                        f"[{safe_filename}] Попытка {attempt}/{max_retries}: {last_error}"
+                    )
                     if attempt < max_retries:
                         time.sleep(2)
                         continue
@@ -105,34 +112,38 @@ class VKNotifier:
 
                 if attempt > 1:
                     logger.info(
-                        f"Документ '{safe_filename}' успешно загружен с {attempt}-й попытки -> {attachment_str}"
+                        f"[{safe_filename}] Успешно загружен с {attempt}-й попытки -> {attachment_str}"
                     )
                 else:
                     logger.info(
-                        f"Документ загружен в ВК: {safe_filename} -> {attachment_str}"
+                        f"[{safe_filename}] Документ загружен -> {attachment_str}"
                     )
                 return attachment_str
 
             except requests.exceptions.Timeout:
                 last_error = "Таймаут загрузки"
                 logger.warning(
-                    f"Таймаут при загрузке '{safe_filename}' (попытка {attempt}/{max_retries})."
+                    f"[{safe_filename}] Попытка {attempt}/{max_retries}: таймаут"
                 )
                 if attempt < max_retries:
                     time.sleep(3)
                     continue
             except requests.exceptions.RequestException as e:
-                last_error = f"Сетевая ошибка: {e}"
-                logger.warning(last_error)
+                last_error = str(e).split("\n")[0]
+                logger.warning(
+                    f"[{safe_filename}] Попытка {attempt}/{max_retries}: сетевая ошибка ({last_error})"
+                )
                 if attempt < max_retries:
                     time.sleep(2)
                     continue
             except Exception as e:
-                logger.error(f"Неожиданная ошибка при загрузке: {e}", exc_info=True)
+                logger.error(
+                    f"[{safe_filename}] Неожиданная ошибка: {e}", exc_info=True
+                )
                 return None
 
         logger.error(
-            f"Не удалось загрузить '{safe_filename}' после {max_retries} попыток. "
+            f"[{safe_filename}] Не удалось загрузить после {max_retries} попыток. "
             f"Последняя ошибка: {last_error}"
         )
         return None
