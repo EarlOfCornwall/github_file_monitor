@@ -14,5 +14,10 @@
     "sender_email": "me@example.com",
     "sender_password": "app-password",
     "recipient_email": "you@example.com"
+  },
+  "vk": {
+    "token": "vk1.a.xxxxxxxxxxxxxxxxxxxx",
+    "peer_id": "123456789",
+    "api_version": "5.199"
   }
 }
