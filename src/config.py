@@ -17,7 +17,7 @@ class EmailConfig:
 @dataclass
 class VKConfig:
     token: str
-    peerid: int
+    peer_id: int
     api_version: str = "5.199"
 
 
