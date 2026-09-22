@@ -6,9 +6,10 @@ from pathlib import Path
 # Добавляем корень проекта в sys.path для корректных импортов
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.config import AppConfig
+from src.config import AppConfig, VKConfig
 from src.worker import MonitorWorker
 from src.notifiers.email_notifier import EmailNotifier
+from src.notifiers.vk_notifier import VKNotifier
 
 log_file = Path("monitor.log")
 
@@ -54,7 +55,8 @@ def main() -> None:
 
     logger.info("Инициализация модулей...")
     worker = MonitorWorker(config)
-    notifier = EmailNotifier(config.email)
+    notifier_email = EmailNotifier(config.email) if config.email else None
+    notifier_vk = VKNotifier(config.vk) if config.vk else None
 
     logger.info(
         f"Мониторинг запущен. Интервал проверки: {config.check_interval_minutes} мин."
@@ -73,17 +75,30 @@ def main() -> None:
 
                 save_files_locally(updated_files)
 
-                logger.info("Отправка уведомления на почту...")
-                success = notifier.send_notification(
-                    repo_name=config.repo_name, updated_files=updated_files
-                )
-
-                if success:
-                    logger.info("Уведомление успешно отправлено.")
-                else:
-                    logger.error(
-                        "Не удалось отправить уведомление на почту. Проверьте логи выше."
+                if notifier_email:
+                    logger.info("Отправка уведомления на почту...")
+                    success_email = notifier_email.send_notification(
+                        repo_name=config.repo_name, updated_files=updated_files
                     )
+                    if success_email:
+                        logger.info("Email уведомление успешно отправлено.")
+                    else:
+                        logger.error(
+                            "Не удалось отправить Email уведомление. Проверьте логи выше."
+                        )
+
+                if notifier_vk:
+                    logger.info("Отправка уведомления в VK...")
+                    success_vk = notifier_vk.send_notification(
+                        repo_name=config.repo_name, updated_files=updated_files
+                    )
+                    if success_vk:
+                        logger.info("VK уведомление успешно отправлено.")
+                    else:
+                        logger.error(
+                            "Не удалось отправить VK уведомление. Проверьте логи выше."
+                        )
+
             else:
                 logger.info("Обновлений не найдено.")
 
