@@ -15,6 +15,13 @@ class EmailConfig:
 
 
 @dataclass
+class VKConfig:
+    token: str
+    peerid: int
+    api_version: str = "5.199"
+
+
+@dataclass
 class AppConfig:
     repo_owner: str
     repo_name: str
@@ -22,7 +29,8 @@ class AppConfig:
     branch: str
     check_interval_minutes: int
     gh_api_token: str | None
-    email: EmailConfig
+    email: EmailConfig | None = None
+    vk: VKConfig | None = None
 
     @classmethod
     def load_config(cls, path: Path = CONFIG_PATH) -> "AppConfig":
@@ -36,7 +44,11 @@ class AppConfig:
         if email_data is None:
             raise ValueError("Empty email config")
 
-        email_cfg = EmailConfig(**email_data)
+        email_data = data.get("email")
+        email_cfg = EmailConfig(**email_data) if email_data else None
+
+        vk_data = data.get("vk")
+        vk_cfg = VKConfig(**vk_data) if vk_data else None
 
         return cls(
             repo_owner=data["repo_owner"],
@@ -46,4 +58,5 @@ class AppConfig:
             gh_api_token=data.get("gh_api_token"),
             branch=data["branch"],
             email=email_cfg,
+            vk=vk_cfg,
         )
